@@ -47,6 +47,7 @@ public class SQLThread extends Thread {
                 statement.execute("drop table `replaces`");
                 statement.execute("drop table `items`");
                 statement.execute("drop table `groups`");
+                statement.execute("drop table `changes`");
 
                 createDB();
                 Map<Integer, Shop> shopMap = new HashMap<Integer, Shop>();
