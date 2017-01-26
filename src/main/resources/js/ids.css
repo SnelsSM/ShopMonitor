@@ -1,0 +1,13 @@
+.nopadding {
+   padding: 0 !important;
+   margin: 0 !important;
+   border-collapse: collapse !important;
+}
+
+.noborders {
+    border 0px 0px 0px 0px !important;
+}
+
+.width {
+    width: 20px !important;
+}
