@@ -1,5 +1,6 @@
 package objects;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -11,8 +12,21 @@ public class Collections {
     private ObservableList<Group> groupList = FXCollections.observableArrayList();
     private ObservableList<Change> changeList = FXCollections.observableArrayList();
     private SimpleStringProperty htmlPage = new SimpleStringProperty();
+    private SimpleBooleanProperty loaded = new SimpleBooleanProperty();
     private SimpleIntegerProperty complete = new SimpleIntegerProperty();
     private int countAll = 0;
+
+    public boolean isLoaded() {
+        return loaded.get();
+    }
+
+    public SimpleBooleanProperty loadedProperty() {
+        return loaded;
+    }
+
+    public void setLoaded(boolean loaded) {
+        this.loaded.set(loaded);
+    }
 
     public int getCountAll() {
         return countAll;

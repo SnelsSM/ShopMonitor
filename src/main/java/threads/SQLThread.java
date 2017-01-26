@@ -1,7 +1,9 @@
 package threads;
 
+import actions.IGroupAction;
 import actions.IItemAction;
 import actions.IShopAction;
+import actions.impls.GroupAction;
 import actions.impls.ItemAction;
 import actions.impls.ShopAction;
 import controllers.MainController;
@@ -24,6 +26,7 @@ public class SQLThread extends Thread {
     private Collections collections = MainController.collections;
     private IShopAction shopAction = new ShopAction();
     private IItemAction itemAction = new ItemAction();
+    private IGroupAction groupAction = new GroupAction();
 
     public SQLThread(String action) {
         this.action = action;
@@ -107,6 +110,7 @@ public class SQLThread extends Thread {
                 Map<Integer, Shop> shopMap = new HashMap<Integer, Shop>();
                 Map<Integer, Item> itemMap = new HashMap<Integer, Item>();
                 ArrayList<String> replaces = new ArrayList<>();
+                Map<Integer, Group> groupMap = new HashMap<>();
                 resultSet = statement.executeQuery("SELECT * FROM replaces;");
                 while (resultSet.next()) {
                     int shopId = resultSet.getInt("shopId");
@@ -164,8 +168,11 @@ public class SQLThread extends Thread {
                     }
 
                     Group group = new Group(groupName, itemsList);
+                    groupMap.put(groupId, group);
+                    groupAction.add(group);
                 }
 
+                collections.setLoaded(true);
             }
         } catch (SQLException e) {
             e.printStackTrace();

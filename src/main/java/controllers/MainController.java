@@ -55,7 +55,6 @@ public class MainController implements Initializable {
 
         collections = new Collections();
 
-        new SQLThread("read");
         ToggleButton b1 = new ToggleButton("Таблица");
         ToggleButton b2 = new ToggleButton("Магазины");
         ToggleButton b3 = new ToggleButton("Номенклатура");
@@ -109,7 +108,7 @@ public class MainController implements Initializable {
 
         });
 
-
+        new SQLThread("read");
 
     }
 

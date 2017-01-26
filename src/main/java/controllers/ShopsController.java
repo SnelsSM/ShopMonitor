@@ -223,4 +223,9 @@ public class ShopsController implements Initializable {
         }
     }
 
+    @FXML
+    private void cancelAction() {
+        showEditDialog(false);
+    }
+
 }

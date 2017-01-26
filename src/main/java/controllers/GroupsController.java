@@ -2,6 +2,8 @@ package controllers;
 
 import actions.IGroupAction;
 import actions.impls.GroupAction;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -41,7 +43,16 @@ public class GroupsController implements Initializable{
         groupsListView.setItems(collections.getGroupList());
         groupsListView.setCellFactory(groupsListController -> new GroupsListController(this));
         showEditDialog(false);
+        ArrayList<Item> items = new ArrayList<>();
         itemsSourceList.addAll(collections.getItemList());
+
+        collections.loadedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) for (Group group : collections.getGroupList())
+                for (Item item : group.getItemsInGroup())
+                    itemsSourceList.remove(item);
+        });
+
+
 
         listSelectionView.setSourceItems(itemsSourceList);
         listSelectionView.setTargetItems(itemsTargetList);

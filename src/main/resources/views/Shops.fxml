@@ -76,6 +76,7 @@
                   </TableView>
                   <ButtonBar prefHeight="40.0" prefWidth="200.0">
                      <buttons>
+                        <Button mnemonicParsing="false" onAction="#cancelAction" text="Отмена" />
                         <Button fx:id="addButton" disable="true" mnemonicParsing="false" onAction="#addShop" text="Добавить" />
                      </buttons>
                      <VBox.margin>
