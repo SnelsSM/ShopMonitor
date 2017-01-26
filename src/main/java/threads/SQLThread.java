@@ -103,6 +103,27 @@ public class SQLThread extends Thread {
                     }
                 }
 
+
+                for (Change change : collections.getChangeList()) {
+                    int itemId = 0;
+                    int shopId = 0;
+                    for (Map.Entry entry : itemMap.entrySet())
+                         if (entry.getValue() == change.getItem())
+                             itemId = (int)entry.getKey();
+
+                    for (Map.Entry entry : shopMap.entrySet())
+                        if (entry.getValue() == change.getShop())
+                            shopId = (int) entry.getKey();
+
+                    StringBuilder values = new StringBuilder();
+                    for (Map.Entry entry : change.getChangesMap().entrySet()) {
+                        values.append(entry.getKey() + ":" + entry.getValue() + ";");
+                    }
+
+                    statement.execute("INSERT INTO 'changes' " +
+                            "('itemId','shopId', 'value', 'valuesHistory') VALUES ('" + itemId + "','" + shopId + "','" + change.getValue() + "', '" + values + "');");
+                }
+
             }
 
             if (action.equals("read")) {
@@ -172,6 +193,29 @@ public class SQLThread extends Thread {
                     groupAction.add(group);
                 }
 
+                resultSet = statement.executeQuery("SELECT * FROM changes;");
+                while (resultSet.next()) {
+                    Map<Long, String> valuesMap = new HashMap<>();
+                    Item item = null;
+                    Shop shop = null;
+                    for (Map.Entry entry : itemMap.entrySet())
+                        if ((int)entry.getKey() == resultSet.getInt("itemId"))
+                            item = (Item) entry.getValue();
+                    for (Map.Entry entry : shopMap.entrySet())
+                        if ((int)entry.getKey() == resultSet.getInt("shopId"))
+                            shop = (Shop) entry.getValue();
+
+                    String[] values = resultSet.getString("valuesHistory").split(";");
+
+                    for (String s : values)
+                        valuesMap.put(Long.parseLong(s.split(":")[0]), s.split(":")[1]);
+
+                    String value = resultSet.getString("value");
+
+                    Change change = new Change(shop, item, value, valuesMap);
+                    collections.getChangeList().add(change);
+                }
+
                 collections.setLoaded(true);
             }
         } catch (SQLException e) {
@@ -212,6 +256,9 @@ public class SQLThread extends Thread {
 
             statement.execute("CREATE TABLE if not exists 'groups' " +
                 "('id' INTEGER PRIMARY KEY, 'groupName' text, 'items' text);");
+
+        statement.execute("CREATE TABLE if not exists 'changes' " +
+                "('itemId' INTEGER, 'shopId' INTEGER, 'value' text, 'valuesHistory' text);");
 
             statement.execute("CREATE TABLE if not exists 'other' " +
                     "('id' INTEGER PRIMARY KEY AUTOINCREMENT, 'webPage' text);");

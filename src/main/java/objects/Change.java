@@ -3,6 +3,7 @@ package objects;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LongSummaryStatistics;
 import java.util.Map;
 
 public class Change implements Serializable{
@@ -16,6 +17,17 @@ public class Change implements Serializable{
         this.shop = shop;
         this.item = item;
         setValue(value);
+    }
+
+    public Change(Shop shop, Item item, String value, Map<Long, String> changesMap) {
+        this.shop = shop;
+        this.item = item;
+        this.changesMap.putAll(changesMap);
+        setValue(value);
+    }
+
+    public Map<Long, String> getChangesMap() {
+        return changesMap;
     }
 
     public Item getItem() {
