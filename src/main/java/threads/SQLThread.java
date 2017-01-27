@@ -75,7 +75,7 @@ public class SQLThread extends Thread {
                     for (Map.Entry entry : item.getShopMap().entrySet()) {
                         for (Map.Entry entry1 : shopMap.entrySet()) {
                             if (entry1.getValue() == entry.getKey())
-                                shopLinks.append(entry1.getKey() + ":" + entry.getValue() + ";");
+                                shopLinks.append(entry1.getKey() + ":::" + entry.getValue() + ";");
                         }
                     }
 
@@ -163,7 +163,7 @@ public class SQLThread extends Thread {
                     String[] links = resultSet.getString("shopLinks").split(";");
                     for (String s : links) {
                         int shopId = Integer.parseInt(s.split(":")[0]);
-                        String link = s.split(":")[1];
+                        String link = s.split(":::")[1];
                         for (Map.Entry entry : shopMap.entrySet())
                             if ((int)entry.getKey() == shopId)
                                 linksMap.put((Shop)entry.getValue(), link);
