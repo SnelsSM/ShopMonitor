@@ -20,7 +20,6 @@ public class BuildTable extends Thread {
     }
 
     public void run() {
-
         perCount = 80/collections.getShopList().size();
 
         htmlPage.append("<table id=\"tableSearchResults\" class=\"table table-hover\">\n" +
@@ -47,12 +46,14 @@ public class BuildTable extends Thread {
         }
 
         if(itemList.size() != 0) {
+            group = null;
             addGroup("Без группы", 0);
         }
 
         htmlPage.append("</tbody>\n" +
                 "</table>\n");
 
+        collections.setHtmlPage("");
         collections.setHtmlPage(htmlPage.toString());
     }
 

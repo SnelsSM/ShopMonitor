@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
 
-<AnchorPane fx:id="anchorPane" prefWidth="200.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane id="pane" fx:id="anchorPane" prefWidth="185.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <HBox fx:id="hBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0">
-         <children>
-            <Button fx:id="label" alignment="BOTTOM_LEFT" mnemonicParsing="false" prefWidth="180.0" text="Button" />
-            <Button fx:id="del" mnemonicParsing="false" prefWidth="20.0" text="Button" />
-         </children>
-      </HBox>
+      <Button id="cell_button" fx:id="label" alignment="BOTTOM_LEFT" mnemonicParsing="false" text="Button" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="0.0" />
+      <Button id="cell_button" fx:id="del" mnemonicParsing="false" prefWidth="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <graphic>
+            <FontAwesomeIconView glyphName="TRASH" />
+         </graphic></Button>
    </children>
 </AnchorPane>

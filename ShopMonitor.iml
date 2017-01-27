@@ -14,5 +14,6 @@
     <orderEntry type="library" name="org.controlsfx:controlsfx-samples:8.40.12" level="project" />
     <orderEntry type="library" name="org.jsoup:jsoup:1.10.2" level="project" />
     <orderEntry type="library" name="org.xerial:sqlite-jdbc:3.16.1" level="project" />
+    <orderEntry type="library" name="de.jensd:fontawesomefx:8.9" level="project" />
   </component>
 </module>

@@ -11,7 +11,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import objects.*;
 
-import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +46,8 @@ public class SQLThread extends Thread {
                 statement.execute("drop table `replaces`");
                 statement.execute("drop table `items`");
                 statement.execute("drop table `groups`");
+                statement.execute("drop table `changes`");
+                statement.execute("drop table `settings`");
 
                 createDB();
                 Map<Integer, Shop> shopMap = new HashMap<Integer, Shop>();
@@ -75,7 +76,7 @@ public class SQLThread extends Thread {
                     for (Map.Entry entry : item.getShopMap().entrySet()) {
                         for (Map.Entry entry1 : shopMap.entrySet()) {
                             if (entry1.getValue() == entry.getKey())
-                                shopLinks.append(entry1.getKey() + ":" + entry.getValue() + ";");
+                                shopLinks.append(entry1.getKey() + ":::" + entry.getValue() + ";");
                         }
                     }
 
@@ -92,15 +93,18 @@ public class SQLThread extends Thread {
 
                     StringBuilder items = new StringBuilder();
 
-                    for (Item item : group.getItemsInGroup()) {
+                    if (group.getItemsInGroup().size() != 0) {
+                        for (Item item : group.getItemsInGroup()) {
 
-                        for (Map.Entry entry : itemMap.entrySet())
-                            if (entry.getValue() == item)
-                                items.append(entry.getKey() + ";");
+                            for (Map.Entry entry : itemMap.entrySet())
+                                if (entry.getValue() == item)
+                                    items.append(entry.getKey() + ";");
 
-                        statement.execute("INSERT INTO 'groups' " +
-                                "('id','groupName', 'items') VALUES ('" + groupCount + "','" + group.getGroupName() + "','" + items + "');");
-                    }
+                            statement.execute("INSERT INTO 'groups' " +
+                                    "('id','groupName', 'items') VALUES ('" + groupCount + "','" + group.getGroupName() + "','" + items + "');");
+                        }
+                    } else statement.execute("INSERT INTO 'groups' " +
+                            "('id','groupName') VALUES ('" + groupCount + "','" + group.getGroupName() + "');");
                 }
 
 
@@ -124,6 +128,12 @@ public class SQLThread extends Thread {
                             "('itemId','shopId', 'value', 'valuesHistory') VALUES ('" + itemId + "','" + shopId + "','" + change.getValue() + "', '" + values + "');");
                 }
 
+
+                statement.execute("INSERT INTO 'settings' " +
+                        "('autoStart','autoSave', 'repeat', 'repeatInterval', 'loadPause', 'saveInterval', 'webPage') " +
+                        "VALUES ('" + collections.isAutoStart() + "','" + collections.isAutoSave() + "','" + collections.isRepeat() +
+                        "', '" + collections.getRepeatInterval() + "', '" + collections.getLoadPause() + "', '" +
+                        collections.getSaveInterval() + "', '" + collections.getHtmlPage() + "');");
             }
 
             if (action.equals("read")) {
@@ -142,6 +152,7 @@ public class SQLThread extends Thread {
                 while (resultSet.next()) {
                     Map<String, String> replacesMap = new HashMap<>();
                     int id = resultSet.getInt("id");
+
                     for (String s : replaces) {
                         int shopId = Integer.parseInt(s.split(";")[0]);
                         if (shopId == id)
@@ -161,12 +172,22 @@ public class SQLThread extends Thread {
                     int itemId = resultSet.getInt("id");
                     String itemName = resultSet.getString("itemName");
                     String[] links = resultSet.getString("shopLinks").split(";");
-                    for (String s : links) {
-                        int shopId = Integer.parseInt(s.split(":")[0]);
-                        String link = s.split(":")[1];
-                        for (Map.Entry entry : shopMap.entrySet())
-                            if ((int)entry.getKey() == shopId)
-                                linksMap.put((Shop)entry.getValue(), link);
+
+                    if (!links.equals("")) {
+                        for (String s : links) {
+                            String[] split = s.split(":::");
+                            String shopIdString = split[0];
+                            if (!shopIdString.equals("")) {
+                                int shopId = Integer.parseInt(shopIdString);
+                                String link = "";
+                                if (split.length > 1)
+                                    link = split[1];
+
+                                for (Map.Entry entry : shopMap.entrySet())
+                                    if ((int) entry.getKey() == shopId)
+                                        linksMap.put((Shop) entry.getValue(), link);
+                            }
+                        }
                     }
                     Item item = new Item(itemName, linksMap);
                     itemMap.put(itemId, item);
@@ -178,13 +199,15 @@ public class SQLThread extends Thread {
                     ObservableList<Item> itemsList = FXCollections.observableArrayList();
                     int groupId = resultSet.getInt("id");
                     String groupName = resultSet.getString("groupName");
-                    String[] items = resultSet.getString("items").split(";");
+                    if (resultSet.getString("items") != null) {
+                        String[] items = resultSet.getString("items").split(";");
 
-                    for (String s : items) {
-                        int itemId = Integer.parseInt(s);
-                        for (Map.Entry entry : itemMap.entrySet()) {
-                            if ((int)entry.getKey() == itemId)
-                                itemsList.add((Item)entry.getValue());
+                        for (String s : items) {
+                            int itemId = Integer.parseInt(s);
+                            for (Map.Entry entry : itemMap.entrySet()) {
+                                if ((int) entry.getKey() == itemId)
+                                    itemsList.add((Item) entry.getValue());
+                            }
                         }
                     }
 
@@ -214,6 +237,18 @@ public class SQLThread extends Thread {
 
                     Change change = new Change(shop, item, value, valuesMap);
                     collections.getChangeList().add(change);
+                }
+
+                resultSet = statement.executeQuery("SELECT * FROM settings;");
+
+                while (resultSet.next()) {
+                    collections.setAutoStart(resultSet.getBoolean("autoStart"));
+                    collections.setAutoSave(resultSet.getBoolean("autoSave"));
+                    collections.setRepeat(resultSet.getBoolean("repeat"));
+                    collections.setRepeatInterval(resultSet.getInt("repeatInterval"));
+                    collections.setLoadPause(resultSet.getInt("loadPause"));
+                    collections.setSaveInterval(resultSet.getInt("saveInterval"));
+                    collections.setHtmlPage(resultSet.getString("webPage"));
                 }
 
                 collections.setLoaded(true);
@@ -260,8 +295,8 @@ public class SQLThread extends Thread {
         statement.execute("CREATE TABLE if not exists 'changes' " +
                 "('itemId' INTEGER, 'shopId' INTEGER, 'value' text, 'valuesHistory' text);");
 
-            statement.execute("CREATE TABLE if not exists 'other' " +
-                    "('id' INTEGER PRIMARY KEY AUTOINCREMENT, 'webPage' text);");
+            statement.execute("CREATE TABLE if not exists 'settings' " +
+                    "('autoStart' boolean, 'autoSave' boolean, 'repeat' boolean, 'repeatInterval' integer, 'loadPause' integer, 'saveInterval' integer, 'webPage' text);");
 
     }
 

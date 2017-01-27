@@ -24,6 +24,7 @@ public class StartParsing extends Thread{
     private Map<Item, String> itemLinksMap = new HashMap<>();
     private ObservableList<Change> items = FXCollections.observableArrayList();
 
+
     public StartParsing(Shop shop) {
         this.shop = shop;
 
@@ -89,12 +90,13 @@ public class StartParsing extends Thread{
                     }
 
                     try {
-                        Thread.sleep(10000);
+                        Thread.sleep(collections.getLoadPause()*1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
                 collections.updateComplete();
+                collections.updateCompleteCount();
             }
 
     }

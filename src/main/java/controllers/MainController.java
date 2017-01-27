@@ -1,30 +1,28 @@
 package controllers;
 
 import javafx.application.Platform;
-import javafx.beans.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
-import objects.Change;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import objects.Collections;
-import objects.Item;
-import objects.Shop;
 import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.control.StatusBar;
-import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import threads.BuildTable;
-import threads.MainThread;
+import threads.SaveThread;
+import threads.ShopsThread;
 import threads.SQLThread;
 
 import java.io.IOException;
@@ -43,8 +41,14 @@ public class MainController implements Initializable {
     @FXML private Button saveButton;
     @FXML private Button excelButton;
 
+    private Stage dialog;
+
+    private FXMLLoader fxmlLoader = new FXMLLoader();
+    private Parent fxmlEdit;
     private GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
     public static Collections collections;
+    private boolean starts = false;
+    private MainController mainController = this;
 
     private Map<String, Parent> parentMap = new HashMap<String, Parent>();
     private ArrayList<String> fxmlList = new ArrayList<String>();
@@ -54,6 +58,13 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
 
         collections = new Collections();
+
+        try {
+            fxmlLoader.setLocation(getClass().getResource("/views/SettingsWindow.fxml"));
+            fxmlEdit = fxmlLoader.load();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         ToggleButton b1 = new ToggleButton("Таблица");
         ToggleButton b2 = new ToggleButton("Магазины");
@@ -90,6 +101,19 @@ public class MainController implements Initializable {
         saveButton.setGraphic(fontAwesome.create("FLOPPY_ALT"));
         excelButton.setGraphic(fontAwesome.create("FILE_EXCEL_ALT"));
 
+        collections.completeTasksProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue)
+                Platform.runLater(() -> {
+                    startButton.setGraphic(fontAwesome.create("PLAY"));
+                });
+
+            else
+                Platform.runLater(() -> {
+                    startButton.setGraphic(fontAwesome.create("STOP"));
+                });
+
+        });
+
         collections.completeProperty().addListener((observable, oldValue, newValue) -> {
 
             int countAll = collections.getCountAll();
@@ -99,7 +123,10 @@ public class MainController implements Initializable {
                 perCount = 0.0;
                 Date dNow = new Date();
                 SimpleDateFormat df = new SimpleDateFormat("HH:mm");
-                Platform.runLater(() -> statusBar.setText("Обновлено в " + df.format(dNow)));
+                Platform.runLater(() -> {
+                    statusBar.setText("Обновлено в " + df.format(dNow));
+                    new BuildTable();
+                });
                 collections.setComplete(0);
             }
             Platform.runLater(() -> {
@@ -110,6 +137,37 @@ public class MainController implements Initializable {
 
         new SQLThread("read");
 
+
+        collections.loadedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!starts && newValue) {
+                starts = true;
+                if (collections.isAutoStart())
+                    new ShopsThread(mainController, false);
+
+                if (collections.isAutoSave())
+                    new SaveThread();
+            }
+
+        });
+
+        collections.autoSaveProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue)
+                new SaveThread();
+        });
+    }
+
+    @FXML
+    private void settingsAction () {
+        if (dialog == null) {
+            dialog = new Stage();
+            //dialog.getIcons().add(new Image(getClass().getResourceAsStream("/WCD.png")));
+            dialog.setTitle("Настройки");
+            dialog.setResizable(false);
+            dialog.setScene(new Scene(fxmlEdit));
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.initOwner(anchorPane.getScene().getWindow());
+        }
+        dialog.show();
     }
 
     @FXML
@@ -150,16 +208,10 @@ public class MainController implements Initializable {
     }
 
 
-    @FXML
-    private void test() {
-        statusBar.setText("Выполняется");
-        statusBar.setProgress(-1);
-        new MainThread(this);
-    }
 
     @FXML
-    private void build() {
-        new BuildTable();
+    private void startAction() {
+             new ShopsThread(mainController, true);
     }
 
     @FXML

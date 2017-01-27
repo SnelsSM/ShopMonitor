@@ -16,6 +16,7 @@ public class ItemsTableController implements Initializable {
     @FXML
     private WebView webView;
     private boolean loaded = false;
+    private boolean start = false;
 
 
     private Collections collections = MainController.collections;
@@ -23,27 +24,32 @@ public class ItemsTableController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+        loadPage();
 
 
-        String s2 = "<div id=\"OrderPackages\"><table id=\"tableSearchResults\" class=\"table table-hover  table-striped table-condensed\"><thead><tr><th>Номенклатура</th></tr></thead></table></div>";
-
-        URL url = getClass().getResource("/Table.html");
-        webView.getEngine().load(url.toExternalForm());
-
-        webView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != Worker.State.SUCCEEDED) {return;}
-            loaded = true;
-
-        });
 
         collections.htmlPageProperty().addListener((observable, oldValue, newValue) -> {
             Platform.runLater(new Runnable() {
                 @Override
                 public void run() {
-                    if (loaded)
-                        webView.getEngine().executeScript("add('" +collections.getHtmlPage().replace("\n", "")+ "')");
+                    if (loaded && collections.isLoaded()) {
+                        webView.getEngine().executeScript("remove()");
+                        webView.getEngine().executeScript("add('" + collections.getHtmlPage().replace("\n", "") + "')");
+                    }
                 }
             });
+        });
+    }
+
+    private void loadPage() {
+        URL url = getClass().getResource("/Table.html");
+        webView.getEngine().load(url.toExternalForm());
+
+        loaded = false;
+        webView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != Worker.State.SUCCEEDED) {return;}
+            loaded = true;
+            webView.getEngine().executeScript("add('" + collections.getHtmlPage().replace("\n", "") + "')");
         });
     }
 

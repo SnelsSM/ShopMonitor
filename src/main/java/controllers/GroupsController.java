@@ -121,6 +121,7 @@ public class GroupsController implements Initializable{
 
             }
         });
+        addButton.setDisable(false);
     }
 
     private void saveGroup(Group group) {
